@@ -131,7 +131,7 @@ static constexpr KStandardActionsInfo g_rgActionInfo[] = {
     { ReportBug,     KStandardShortcut::ReportBug, u"help_report_bug", QT_TRANSLATE_NOOP("KStandardActions", "&Report Bug…"), {}, u"tools-report-bug" },
     { SwitchApplicationLanguage, KStandardShortcut::SwitchApplicationLanguage, u"switch_application_language", QT_TRANSLATE_NOOP("KStandardActions", "Configure &Language…"), {}, u"preferences-desktop-locale" },
     { AboutApp,      KStandardShortcut::AccelNone, u"help_about_app", QT_TRANSLATE_NOOP("KStandardActions", "&About %1"), {}, nullptr },
-    { AboutKDE,      KStandardShortcut::AccelNone, u"help_about_kde", QT_TRANSLATE_NOOP("KStandardActions", "About &KDE"), {}, u"kde" },
+    { AboutKDE,      KStandardShortcut::AccelNone, u"help_about_kde", QT_TRANSLATE_NOOP("KStandardActions", "About &SonicDE"), {}, u"kde" },
     { DeleteFile,    KStandardShortcut::DeleteFile, u"deletefile", QT_TRANSLATE_NOOP("KStandardActions", "&Delete"), {}, u"edit-delete" },
     { RenameFile,    KStandardShortcut::RenameFile, u"renamefile", QT_TRANSLATE_NOOP("KStandardActions", "&Rename…"), {}, u"edit-rename" },
     { MoveToTrash,   KStandardShortcut::MoveToTrash, u"movetotrash", QT_TRANSLATE_NOOP("KStandardActions", "&Move to Trash"), {}, u"trash-empty" },
