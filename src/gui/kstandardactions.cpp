@@ -111,6 +111,10 @@ QAction *_kgui_createInternal(StandardAction id, QObject *parent)
         if (id == AboutApp) {
             icon = qGuiApp->windowIcon();
         }
+        // Bundled, so icon themes without a SonicDE icon don't show another logo.
+        if (id == AboutKDE) {
+            icon = QIcon(QStringLiteral(":/kconfiggui/sonicde.svg"));
+        }
 
         // Set the text before setting the MenuRole, as on OS X setText will do some heuristic role guessing.
         // This ensures user menu items get the intended role out of the list below.

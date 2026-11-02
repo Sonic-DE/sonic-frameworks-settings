@@ -28,6 +28,8 @@ target_sources(KF6ConfigGui PRIVATE
     kstandardactions.cpp
 )
 
+qt_add_resources(KF6ConfigGui "kconfiggui-images" PREFIX "/kconfiggui" FILES sonicde.svg)
+
 ecm_qt_declare_logging_category(KF6ConfigGui
     HEADER kconfig_gui_log_settings.h
     IDENTIFIER KCONFIG_GUI_LOG
