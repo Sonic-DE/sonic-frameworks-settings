@@ -5,6 +5,7 @@
 */
 
 #include "kstandardshortcuttest.h"
+#include <QHash>
 #include <QTest>
 
 QTEST_MAIN(KStandardShortcutTest) // GUI needed by KAccel
@@ -58,6 +59,23 @@ void KStandardShortcutTest::testFindByName()
     for (int i = KStandardShortcut::AccelNone + 1; i < KStandardShortcut::StandardShortcutCount; ++i) {
         const auto id = static_cast<KStandardShortcut::StandardShortcut>(i);
         QCOMPARE(id, KStandardShortcut::findByName(KStandardShortcut::name(id)));
+    }
+}
+
+void KStandardShortcutTest::testDefaultsAreUnambiguous()
+{
+    QHash<QKeySequence, KStandardShortcut::StandardShortcut> owners;
+    for (int i = KStandardShortcut::AccelNone + 1; i < KStandardShortcut::StandardShortcutCount; ++i) {
+        const auto id = static_cast<KStandardShortcut::StandardShortcut>(i);
+        const auto keys = KStandardShortcut::hardcodedDefaultShortcut(id);
+        for (const QKeySequence& key : keys) {
+            const auto owner = owners.constFind(key);
+            if (owner != owners.constEnd()) {
+                QFAIL(qPrintable(QStringLiteral("%1 is the default for both %2 and %3")
+                        .arg(key.toString(), KStandardShortcut::name(owner.value()), KStandardShortcut::name(id))));
+            }
+            owners.insert(key, id);
+        }
     }
 }
 
