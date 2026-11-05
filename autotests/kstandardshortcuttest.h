@@ -20,6 +20,7 @@ private Q_SLOTS:
     void testShortcut();
     void testFindStdAccel();
     void testFindByName();
+    void testDefaultsAreUnambiguous();
 };
 
 #endif

@@ -98,12 +98,10 @@ static KStandardShortcutInfo g_infoStandardShortcut[] = {
     // Group Edit
     {Undo, "Undo", QT_TRANSLATE_NOOP3("KStandardShortcut", "Undo", "@action"), QList<QKeySequence>{CTRL(Z)}, QList<QKeySequence>(), false, Category::Edit},
     {Redo, "Redo", QT_TRANSLATE_NOOP3("KStandardShortcut", "Redo", "@action"), QList<QKeySequence>{CTRLSHIFT(Z)}, QList<QKeySequence>(), false, Category::Edit},
-    // Both "Cut" and "Delete" use Shift+Delete, but this is okay; see
-    // https://commits.kde.org/kxmlgui/8eabbf6725386e716b7536c71a9181dfe5d959f0
     {Cut,
         "Cut",
         QT_TRANSLATE_NOOP3("KStandardShortcut", "Cut", "@action"),
-        QList<QKeySequence>{CTRL(X), SHIFT(Delete)},
+        QList<QKeySequence>{CTRL(X)},
         QList<QKeySequence>(),
         false,
         Category::Edit},
@@ -606,8 +604,6 @@ static KStandardShortcutInfo g_infoStandardShortcut[] = {
         QList<QKeySequence>(),
         false,
         Category::Help},
-    // Both "Cut" and "Delete" use Shift+Delete, but this is okay; see
-    // https://commits.kde.org/kxmlgui/8eabbf6725386e716b7536c71a9181dfe5d959f0
     {DeleteFile,
         "DeleteFile",
         QT_TRANSLATE_NOOP3("KStandardShortcut", "Delete", "@action"),
