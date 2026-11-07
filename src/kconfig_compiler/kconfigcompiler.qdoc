@@ -585,6 +585,6 @@ In the kcfg file you can specify the translation's context for \<tooltip\>, \<wh
 \endcode
 
 For more information on translation context and how to write good translatable text,
-please refer to \l {https://api.kde.org/frameworks/ki18n/html/prg_guide.html}
+please refer to \l {https://github.com/Sonic-DE/sonic-frameworks-internationalization/blob/master/docs/programmers-guide.md#writing-good-contexts} {Writing Good Contexts}.
 
 */
