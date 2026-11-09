@@ -2,8 +2,10 @@
 
 Sonic Frameworks Settings stores and remembers your preferences for SonicDE and its apps.
 
-## Unreleased
+## 6.31.0.1 (2026-11-10)
 
+- Shift+Delete works again: it was the default for both Cut and Delete, so it did nothing. Cut is now Ctrl+X only.
+- The About action in apps now says SonicDE and shows the SonicDE icon.
 - The kconfig_compiler documentation now links to the current translation guide instead of a dead page.
 
 ## 6.31.0 (2026-10-20)
