@@ -79,7 +79,8 @@ static QString getDefaultLocaleName()
         // On Windows and Apple OSs, we cannot use QLocale::system() if an application-specific
         // language was set by kxmlgui because Qt ignores LANGUAGE on Windows and Apple OSs.
         if (const auto firstLanguage = qEnvironmentVariable("LANGUAGE").section(u':', 0, 0, QString::SectionSkipEmpty); !firstLanguage.isEmpty()) {
-            return firstLanguage;
+            // ensure a locale name with language code and country code (as in all other cases)
+            return QLocale(firstLanguage).name();
         }
         // Also prefer the configured display language over the system language
         if (const auto languages = QLocale::system().uiLanguages(); !languages.isEmpty()) {
@@ -585,16 +586,23 @@ KConfig *KConfig::copyTo(const QString &file, KConfig *config) const
     return config;
 }
 
+#if KCONFIGCORE_BUILD_DEPRECATED_SINCE(6, 32)
 void KConfig::copyFrom(const KConfig &config) const
 {
-    Q_D(const KConfig);
-    d_ptr->entryMap = config.d_func()->entryMap;
-    d_ptr->bFileImmutable = false;
+    const_cast<KConfig *>(this)->copyFrom(config);
+}
+#endif
 
-    for (auto &[_, entry] : d_ptr->entryMap) {
+void KConfig::copyFrom(const KConfig &config)
+{
+    Q_D(KConfig);
+    d->entryMap = config.d_func()->entryMap;
+    d->bFileImmutable = false;
+
+    for (auto &[_, entry] : d->entryMap) {
         entry.bDirty = true;
     }
-    d_ptr->bDirty = true;
+    d->bDirty = true;
 }
 
 // TODO KF7 remove, expose QIODevice instead
@@ -731,17 +739,21 @@ void KConfig::reparseConfiguration()
     d->parseUserConfigFiles();
 }
 
+static bool isUserConfigFile(const QString &path, QStandardPaths::StandardLocation resourceType = QStandardPaths::GenericConfigLocation)
+{
+    return path.startsWith(QStandardPaths::writableLocation(resourceType) + u'/');
+}
+
 void KConfigPrivate::ensureGlobalFilesAreInitialized() const
 {
     QMutexLocker locker(&s_globalFilesMutex);
     if (!s_globalFilesAreInitialized) {
-        const QString writableLocation = QStandardPaths::writableLocation(QStandardPaths::GenericConfigLocation);
         const QStringList paths1 = QStandardPaths::locateAll(QStandardPaths::GenericConfigLocation, QStringLiteral("kdeglobals"));
         const QStringList paths2 = QStandardPaths::locateAll(QStandardPaths::GenericConfigLocation, QStringLiteral("system.kdeglobals"));
 
         const bool useEtcKderc = !etc_kderc.isEmpty();
-        const bool writableInPaths1 = !paths1.isEmpty() && paths1.front().startsWith(writableLocation);
-        const bool writableInPaths2 = !paths2.isEmpty() && paths2.front().startsWith(writableLocation);
+        const bool writableInPaths1 = !paths1.isEmpty() && isUserConfigFile(paths1.front());
+        const bool writableInPaths2 = !paths2.isEmpty() && isUserConfigFile(paths2.front());
         const int globalSystemFilesCount = int(useEtcKderc) + (paths1.size() - int(writableInPaths1)) + (paths2.size() - int(writableInPaths2));
         s_globalSystemFiles()->reserve(globalSystemFilesCount);
         s_globalUserFiles()->reserve(int(writableInPaths1) + int(writableInPaths2));
@@ -863,9 +875,8 @@ void KConfigPrivate::parseSystemConfigFiles()
 
     QList<QString> files;
     if (!bSuppressGlobal && !QDir::isAbsolutePath(fileName)) {
-        const QString writableLocation = QStandardPaths::writableLocation(resourceType);
         QStringList localFilesPath = QStandardPaths::locateAll(resourceType, fileName);
-        if (!localFilesPath.isEmpty() && localFilesPath.front().startsWith(writableLocation)) {
+        if (!localFilesPath.isEmpty() && isUserConfigFile(localFilesPath.front(), resourceType)) {
             localFilesPath.removeFirst();
         }
         for (const QString &f : localFilesPath) {
@@ -909,9 +920,8 @@ void KConfigPrivate::parseUserConfigFiles()
                     files << canonicalFile;
                 }
             } else {
-                const QString writableLocation = QStandardPaths::writableLocation(resourceType);
                 const QString localFilePath = QStandardPaths::locate(resourceType, fileName);
-                if (localFilePath.startsWith(writableLocation)) {
+                if (isUserConfigFile(localFilePath, resourceType)) {
                     files << QFileInfo(localFilePath).canonicalFilePath();
                 }
             }

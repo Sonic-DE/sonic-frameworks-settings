@@ -1661,7 +1661,7 @@ void KConfigTest::testLocaleConfigWithOverrideLanguage()
     ts << "foo=4\n";
     ts << "foo[ca]=5\n";
     ts << "foostring=primary\n";
-    ts << "foostring[ca]=nice\n";
+    ts << "foostring[ca_ES]=nice\n";
     ts << "foobool=primary\n";
     ts << "foobool[ca]=true\n";
     f.close();
@@ -1669,7 +1669,7 @@ void KConfigTest::testLocaleConfigWithOverrideLanguage()
     // Load the testdata
     QVERIFY(QFile::exists(file));
     KConfig config(file);
-    QVERIFY(config.locale().startsWith("ca"_L1));
+    QCOMPARE(config.locale(), u"ca_ES"_s);
 
     KConfigGroup cg2(&config, QStringLiteral("Test"));
     QCOMPARE(cg2.readEntry("foo", 3), 5);
@@ -2526,6 +2526,61 @@ void KConfigTest::testSystemAndUserConfig()
     QFile::remove(userConfigDir + "system.kdeglobals"_L1);
     QFile::remove(userConfigDir + "kdeglobals"_L1);
     QDir(userConfigDir + testSubDir).removeRecursively();
+}
+
+void KConfigTest::testSystemAndUserConfigWithSimilarPaths()
+{
+#ifndef Q_XDG_PLATFORM
+    QSKIP("This test relies on XDG_CONFIG_DIRS, which only has effect on Unix.");
+#endif
+
+    // This is a variation of testSystemAndUserConfig testing the case where XDG_CONFIG_DIRS=${XDG_CONFIG_HOME}-system,
+    // i.e. where the first system config folder (in XDG_CONFIG_DIRS) is named like the user config folder with some suffix
+    // (see bug 525267)
+    EnvironmentVariableOverride xdgConfigDirsOverride{"XDG_CONFIG_DIRS",
+                                                      qPrintable(QStandardPaths::writableLocation(QStandardPaths::GenericConfigLocation) + u"-system"_s)};
+
+    const QString systemConfigDir = qEnvironmentVariable("XDG_CONFIG_DIRS") + u'/';
+    const QString userConfigDir = QStandardPaths::writableLocation(QStandardPaths::GenericConfigLocation) + u'/';
+    const QString testSubDir = QString::fromLatin1(QTest::currentTestFunction()) + u'/';
+    const QString configFileName = testSubDir + u"appnamerc"_s;
+
+    auto cleanup = qScopeGuard([&]() {
+        QDir(systemConfigDir).removeRecursively();
+        QFile::remove(userConfigDir + "kdeglobals"_L1);
+    });
+    QVERIFY(writeTextFile(systemConfigDir + "system.kdeglobals"_L1,
+                          "[General]\n"_L1
+                          "system_system_kdeglobals[$i]=1\n"_L1
+                          "system_kdeglobals=1\n"_L1
+                          "system_appnamerc=1\n"_L1
+                          "user_kdeglobals=1\n"_L1));
+    QVERIFY(writeTextFile(systemConfigDir + "kdeglobals"_L1,
+                          "[General]\n"_L1
+                          "system_system_kdeglobals[$i]=2\n"_L1
+                          "system_kdeglobals[$i]=2\n"_L1
+                          "system_appnamerc=2\n"_L1
+                          "user_kdeglobals=2\n"_L1));
+    QVERIFY(writeTextFile(systemConfigDir + configFileName,
+                          "[General]\n"_L1
+                          "system_system_kdeglobals[$i]=3\n"_L1
+                          "system_kdeglobals[$i]=3\n"_L1
+                          "system_appnamerc[$i]=3\n"_L1
+                          "user_kdeglobals=3\n"_L1));
+    QVERIFY(writeTextFile(userConfigDir + "kdeglobals"_L1,
+                          "[General]\n"_L1
+                          "system_system_kdeglobals[$i]=5\n"_L1
+                          "system_kdeglobals[$i]=5\n"_L1
+                          "system_appnamerc[$i]=5\n"_L1
+                          "user_kdeglobals[$i]=5\n"_L1));
+
+    // all config files are read in the order indicated by the config keys
+    KConfig config(configFileName);
+    KConfigGroup group(&config, u"General"_s);
+    QCOMPARE(group.readEntry("system_system_kdeglobals", 0), 1);
+    QCOMPARE(group.readEntry("system_kdeglobals", 0), 2);
+    QCOMPARE(group.readEntry("system_appnamerc", 0), 3);
+    QCOMPARE(group.readEntry("user_kdeglobals", 0), 5);
 }
 
 void KConfigTest::testImmutableFiles()
